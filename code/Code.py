@@ -4,7 +4,7 @@
 Created on Tue Jul 23 15:14:50 2019
 @author: Akhil
 """
-
+# Libraries to run the code
 from numpy.random import seed
 seed(1)
 from tensorflow import set_random_seed
@@ -34,16 +34,20 @@ from sklearn.metrics import mean_squared_error
 import time
 import pandas as pd
 
-# convert data to timeseries
+# STEP 1
+# Data should be of the form as follows: DateTime, Demand, temperature, humidity, Hour of the day, Seasons, Campus schedule
+# Keras requires the data to be converted to be in the following format [Samples,Time steps,Features]. Season, hour of day 
+# and campus schedule are one hot encoded. This is done using the function below.
+
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
 	df = DataFrame(data)
 	cols, names = list(), list()
-	# input sequence (t-n, ... t-1)
+	# Train_X (t-n, ... t-1)
 	for i in range(n_in, 0, -1):
 		cols.append(df.shift(i))
 		names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
-	# forecast sequence (t, t+1, ... t+n)
+	# Train_y (t, t+1, ... t+n)
 	for i in range(0, n_out):
 		cols.append(df.shift(-i))
 		if i == 0:
@@ -58,7 +62,7 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 		agg.dropna(inplace=True)
 	return agg
 
-# Scale data between 0 and 1
+# All data is normalized between 0 and 1 by function below. 
 def scaling(data):
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -74,6 +78,9 @@ def testxy_2FH(data, FH = 24):
         t1.append(tt)
         i+=FH
     return t1 
+# The scaled data is called in the function below to be split into train and test dataset. Train_X and Train_y are the training 
+# dataset and Test_X and Test_y are the test dataset. n_lookback points to the lookback and n_lookahead points to the forecasting 
+# horizon.
 
 def traintest(data,lend = 7008, n_fea = 40, n_lookback = 48, n_lookahead = 24):
     ts = series_to_supervised(data,n_lookback,n_lookahead)
@@ -98,6 +105,8 @@ def traintest(data,lend = 7008, n_fea = 40, n_lookback = 48, n_lookahead = 24):
     test_y = test[:,n_fea*n_lookback:] 
     test_y = test_y[:,range(0,n_lookahead*n_fea,n_fea)]
     return train_X, train_y, test_X, test_y
+
+# STEP 2
 
 def NN(Neurons = 100, Neuron2 = 125, Neuron3 = 125, Neuron4 = 100, epochs = 50,batchsize = 512,
        breg = 0.01, dropout = 0.1, layer = 2, lr = 0.001, n_lookahead = 24,recurrent = 'hard_sigmoid'):
