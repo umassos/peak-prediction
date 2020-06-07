@@ -107,6 +107,7 @@ def traintest(data,lend = 7008, n_fea = 40, n_lookback = 48, n_lookahead = 24):
     return train_X, train_y, test_X, test_y
 
 # STEP 2
+# The function below calls the processed dataset and trains the neural network. The 
 
 def NN(Neurons = 100, Neuron2 = 125, Neuron3 = 125, Neuron4 = 100, epochs = 50,batchsize = 512,
        breg = 0.01, dropout = 0.1, layer = 2, lr = 0.001, n_lookahead = 24,recurrent = 'hard_sigmoid'):
