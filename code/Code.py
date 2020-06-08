@@ -70,40 +70,29 @@ def scaling(data):
     data = pd.DataFrame(data)
     return data
 
-def testxy_2FH(data, FH = 24):
-    t1 = []
-    i = 0
-    while i <len(data):
-        tt = data[i:i+1]
-        t1.append(tt)
-        i+=FH
-    return t1 
 # The scaled data is called in the function below to be split into train and test dataset. Train_X and Train_y are the training 
 # dataset and Test_X and Test_y are the test dataset. n_lookback points to the lookback and n_lookahead points to the forecasting 
 # horizon.
 
-def traintest(data,lend = 7008, n_fea = 40, n_lookback = 48, n_lookahead = 24):
-    ts = series_to_supervised(data,n_lookback,n_lookahead)
-    train = ts[:lend]
-    test = ts[lend:]   
+def traintest(data, n_fea = 40, n_lookback = 48, n_lookahead = 24):
+    ts = series_to_supervised(data,n_lookback,n_lookahead)  
 # Train X
     train_X = train.iloc[:,0:n_lookback * n_fea]
     train_X = np.asarray(train_X)
     train_X = train_X.reshape((train_X.shape[0],n_lookback,n_fea))
+    np.save(train_X, train_X)
 # Train y    
     train_y = train.iloc[:,n_lookback * n_fea:]
     train_y = np.asarray(train_y)
-# Test
-    test = np.asarray(test)
-    test = testxy_2FH(test, FH = n_lookahead)
-    test = np.concatenate(test,axis = 0)
-
+    np.save(train_y, train_y)
 # Test X 
     test_X = test[:,:n_fea*n_lookback]
     test_X = test_X.reshape((test_X.shape[0],n_lookback,n_fea))
+    np.save(test_X,test_X)
 # Test y
     test_y = test[:,n_fea*n_lookback:] 
     test_y = test_y[:,range(0,n_lookahead*n_fea,n_fea)]
+    np.save(test_y,test_y)
     return train_X, train_y, test_X, test_y
 
 # STEP 2
@@ -155,9 +144,11 @@ def gridsearch(Nstart,Nstop,Nstep,Bstart, Bstop, Bstep,Dstart, Dstop, Dstep, lay
     param_grid = dict(Neuron1 = Neuron1, Neuron2 = Neuron2,
                       Neuron3 = Neuron3, Neuron4 = Neuron4, breg = breg, dropout = dropout)
     grid = GridSearchCV(reg, param_grid=param_grid, n_jobs=-1)
-    grid_result = grid.fit(train_X, train_y)
-    return grid_result
-
+    fit_model = grid.fit(train_X, train_y)
+    pred = fit_model.predict(test_X)
+    print(model.best_score_)
+    print(model.best_params_)
+    return fit_model, pred
 
 train_X = np.load('trainX.npy')
 train_y = np.load('trainY.npy')
