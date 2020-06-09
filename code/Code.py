@@ -33,6 +33,7 @@ from math import sqrt
 from sklearn.metrics import mean_squared_error
 import time
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # STEP 1
 # Data should be of the form as follows: DateTime, Demand, temperature, humidity, Hour of the day, Seasons, Campus schedule
@@ -149,23 +150,3 @@ def gridsearch(Nstart,Nstop,Nstep,Bstart, Bstop, Bstep,Dstart, Dstop, Dstep, lay
     print(model.best_score_)
     print(model.best_params_)
     return fit_model, pred
-
-train_X = np.load('trainX.npy')
-train_y = np.load('trainY.npy')
-test_X = np.load('testX.npy')
-test_y = np.load('testy.npy')
-
-
-NNTraining0 = NN(Neurons = 100, 
-                Neuron2 = 90, 
-                Neuron3 = 80,
-                Neuron4 = 70,
-                epochs = 1,
-                batchsize = 72, 
-                breg = 0.04, 
-                dropout = 0.1, 
-                layer = 4, 
-                lr = 0.001,
-                recurrent = 'hard_sigmoid')
-
-Forecast = NNTraining0[0]
